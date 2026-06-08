@@ -1,0 +1,12 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  background-color: #f4f5f7;
+  color: #000000;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}

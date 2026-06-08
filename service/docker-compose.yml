@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # БЭКЕНД (FastAPI)
+  logo_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: logo_seeker_api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - logo_network
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./models:/app/models:ro
+      - ./bases:/app/bases:ro
+      - ./classifier/config.py:/app/classifier/config.py:ro
+    environment:
+      DATABASE_URL: "mysql+pymysql://user:password@db:3306/avito_moderation"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+#    deploy:
+#      resources:
+#        reservations:
+#          devices:
+#            - driver: nvidia
+#              count: 1
+#              capabilities: [gpu]
+
+  # БАЗА ДАННЫХ
+  db:
+    image: mariadb:10.11
+    container_name: logo_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: avito_moderation
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3307:3306"
+    networks:
+      - logo_network
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ФРОНТЕНД (React + Nginx)
+  frontend:
+    build:
+      context: ./logo-frontend
+      dockerfile: Dockerfile
+    container_name: logo_seeker_web
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    networks:
+      - logo_network
+    depends_on:
+      - logo_service
+
+networks:
+  logo_network:
+    driver: bridge
+
+volumes:
+  mysql_data:

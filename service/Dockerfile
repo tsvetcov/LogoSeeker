@@ -1,7 +1,6 @@
 FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
@@ -10,19 +9,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN useradd -m -d /app -s /bin/bash appuser
-WORKDIR /app
+COPY requirements.txt requirements-gpu.txt ./
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Флаг для GPU (по умолчанию false)
+ARG USE_GPU=false
 
-COPY --chown=appuser:appuser . .
-USER appuser
+RUN if [ "$USE_GPU" = "true" ] ; then \
+      pip install --no-cache-dir -r requirements-gpu.txt ; \
+    else \
+      pip install --no-cache-dir -r requirements.txt ; \
+    fi
 
-EXPOSE 8000
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:8000/ || exit 1
+COPY . .
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

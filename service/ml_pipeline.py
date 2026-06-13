@@ -3,42 +3,35 @@ from typing import Dict, Any
 
 import cv2
 import numpy as np
-import json
-from PIL import Image
+from PIL import Image, ImageOps
 from ultralytics import YOLO
 
-from classifier.classifier import LogoClassifier
-from classifier.utils import crop_bounding_box, resize_image, top_n_closest_embs
-from classifier import config
+from classifier import LogoClassifier
+from utils import crop_bounding_box, resize_image, top_n_closest_embs
+import config
+import json
 
 logger = logging.getLogger(__name__)
 
 class LogoPipeline:
-    def __init__(self, detector_path: str = "best.pt", conf_threshold: float = 0.1):
-        logger.info("Инициализация детектора YOLO (путь: %s)...", detector_path)
-        self.detector = YOLO(detector_path)
-        self.conf_threshold = conf_threshold
+    def __init__(self):
+        logger.info("Инициализация детектора YOLO (путь: %s)...", config.DETECTOR_PATH)
+        self.detector = YOLO(config.DETECTOR_PATH)
+        self.conf_threshold = config.DETECTOR_THRESHOLD
 
         logger.info("Инициализация классификатора (Embeddings)...")
         self.classifier = LogoClassifier()
-        try:
-            self.restricted_db = np.load(config.RESTRICTED_EMB_BASE_PATH)
-            self.competitors_db = np.load(config.COMPETITORS_EMB_BASE_PATH)
-            self.employers_db = np.load(config.EMPLOYERS_EMB_BASE_PATH)
+        # self.reference_db = {}
+        self.restricted_db = np.load(config.RESTRICTED_EMB_BASE_PATH)
+        self.competitors_db = np.load(config.COMPETITORS_EMB_BASE_PATH)
+        self.employers_db = np.load(config.EMPLOYERS_EMB_BASE_PATH)
 
-            with open(config.RESTRICTED_EMB_MAP_PATH, "r") as f:
-                self.restricted_db_map = json.load(f)
-            with open(config.COMPETITORS_EMB_MAP_PATH, "r") as f:
-                self.competitors_db_map = json.load(f)
-            with open(config.EMPLOYERS_EMB_MAP_PATH, "r") as f:
-                self.employers_db_map = json.load(f)
-        except FileNotFoundError as e:
-            logger.error(f'Неполный комплект файлов баз и мапинга: {e}')
-            raise
-        except json.JSONDecodeError as e:
-            logger.error(f'Ошибка обработки json: {e}')
-            raise
-        logger.info(f'Эталоны эмбеддингов нежелательных логотипов загружены')
+        with open(config.RESTRICTED_EMB_MAP_PATH, "r") as f:
+            self.restricted_db_map = json.load(f)
+        with open(config.COMPETITORS_EMB_MAP_PATH, "r") as f:
+            self.competitors_db_map = json.load(f)
+        with open(config.EMPLOYERS_EMB_MAP_PATH, "r") as f:
+            self.employers_db_map = json.load(f)
 
 
     def _search_with_mapping(self, emb, database, database_map, top_n=1):
@@ -46,11 +39,10 @@ class LogoPipeline:
         Ищет top_n ближайших эмбеддингов в базе с маппингом
 
         Args:
-            emb: анализируемый эмбеддинг (numpy array)
-            database: матрциа с веекторами эталонов
-            database_map: файл с мапингом
-            top_n: количество ближайших соседей
-            threshold: порог схожести (если указан, то результаты ниже порога отбрасываются)
+            emb (np.array): анализируемый эмбеддинг [dim]
+            database (np.array): матрциа с веекторами эталонов [base_size, dim]
+            database_map (dict): словарь с мапингом
+            top_n (int): количество ближайших соседей
 
         Returns:
             list of dict: [{'name': name, 'similarity': sim}, ...]
@@ -70,50 +62,51 @@ class LogoPipeline:
 
         return results
 
-
-    def _get_best_match(self, best_restricted_match, best_competitors_match, best_employers_match):
+    def _process_match(self, embedding, database, db_map, threshold, category, coords_yolo, det_conf):
         """
-        Выбирает лучший матч из трех списков по наибольшей схожести
+            Функция ищет ближайший эмбеддинг в указанной базе и сравнивает его схожесть
+        с заданным порогом. При превышении порога формирует словарь с результатами.
 
         Args:
-            best_restricted_match: list
-            best_competitors_match: list
-            best_employers_match: list
+            embedding (np.ndarray): Вектор эмбеддинга логотипа размерности [dim]
+            database (np.ndarray): Матрица эталонных эмбеддингов размером [base_size, dim].
+            db_map (dict): Словарь маппинга индексов из database к названиям логотипов.
+                       Формат: {индекс: "название_логотипа"}.
+            threshold(float): Порог схожести (0.0-1.0).
+            category (str): Категория базы данных restricted|employer|competitor
+            coords_yolo (list): Нормализованные координаты bounding box от YOLO.
+            det_conf (float): Уверенность детектора YOLO в обнаружении логотипа (0.0 - 1.0).
+
         Returns:
-            dict: {
-                'category': 'restricted' | 'competitor' | 'employer',
-                'name': str,
-                'similarity': float,
-            }
+            dict or None: Если найдено совпадение выше порога, возвращает словарь с полями:
+            - box (list): Координаты бокса, округленные до 4 знаков
+            - detector_confidence (float): Уверенность детектора
+            - best_match (str): Название совпавшего логотипа
+            - similarity_score (float): Значение схожести с совпавшим логотипом
+            - verdict (str): Вердикт ('blocked' или 'manual_moderation')
+            - logo_category (str): Категория логотипа (переданная в category)
+
+        Если совпадение не найдено (ближайший neighbor ниже порога или база пуста),
+        возвращает None.
         """
-        all_matches = []
-
-        if best_restricted_match:
-            all_matches.append({
-                'category': 'restricted',
-                'name': best_restricted_match[0]['name'],
-                'similarity': best_restricted_match[0]['similarity']
-            })
-
-        if best_competitors_match:
-            all_matches.append({
-                'category': 'competitor',
-                'name': best_competitors_match[0]['name'],
-                'similarity': best_competitors_match[0]['similarity']
-            })
-
-        if best_employers_match:
-            all_matches.append({
-                'category': 'employer',
-                'name': best_employers_match[0]['name'],
-                'similarity': best_employers_match[0]['similarity']
-            })
-
-        if not all_matches:
-            return {'category': 'unknown', 'name': 'Unknown', 'similarity': 0.0}
-
-        best = max(all_matches, key=lambda x: x['similarity'])
-        return best
+        best_match = self._search_with_mapping(embedding, database, db_map, top_n=1)
+        if best_match and best_match[0]['similarity'] > threshold:
+            if category == 'restricted':
+                verdict = 'blocked'
+            elif category == 'competitor':
+                verdict = 'manual_moderation'
+            else:  # category == 'employer'
+                verdict = 'ok'
+                
+            return {
+                "box": [round(c, 4) for c in coords_yolo],
+                "detector_confidence": round(det_conf, 4),
+                "best_match": best_match[0]['name'],
+                "similarity_score": round(best_match[0]['similarity'], 4),
+                "verdict": verdict,
+                "logo_category": category
+            }
+        return None
 
 
     def process_image(self, image_bytes: bytes) -> Dict[str, Any]:
@@ -124,74 +117,60 @@ class LogoPipeline:
             logger.error("Не удалось декодировать байты в изображение.")
             return {"status": "error", "message": "Не удалось прочитать изображение"}
 
-        img_rgb = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
+        DETECTION_SIZE = config.DETECTION_SIZE
+        h, w = img_cv.shape[:2]
+        if max(w, h) > DETECTION_SIZE:
+            scale = min(DETECTION_SIZE / w, DETECTION_SIZE / h)
+            new_w, new_h = int(w * scale), int(h * scale)
+            img_resized = cv2.resize(img_cv, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        else:
+            img_resized = img_cv
+
+
+
+        img_rgb = cv2.cvtColor(img_resized, cv2.COLOR_BGR2RGB)
         img_pil = Image.fromarray(img_rgb)
 
         results_data = []
 
-        det_results = self.detector(img_pil, verbose=False, conf=0.10)
-
+        det_results = self.detector(img_pil, conf=config.DETECTOR_THRESHOLD, verbose=False)
         for r in det_results:
             for box in r.boxes:
                 det_conf = float(box.conf[0])
 
-                if det_conf < self.conf_threshold:
-                    continue
-
                 coords_abs = box.xyxy[0].tolist()
                 coords_yolo = box.xywhn[0].tolist()
-
                 try:
                     crop_img = crop_bounding_box(img_pil, coords_abs)
                     processed_crop = resize_image(crop_img)
-
                     if isinstance(processed_crop, np.ndarray):
                         processed_crop = Image.fromarray(processed_crop)
 
                     embedding = self.classifier.get_embedding(processed_crop)
 
-                    best_resricted_match = self._search_with_mapping(
-                        embedding,
-                        self.restricted_db,
-                        self.restricted_db_map,
-                        top_n=1,
-                    )
-                    best_competitors_match = self._search_with_mapping(
-                        embedding,
-                        self.competitors_db,
-                        self.competitors_db_map,
-                        top_n=1,
-                    )
-                    best_employers_match = self._search_with_mapping(
-                        embedding,
-                        self.employers_db,
-                        self.employers_db_map,
-                        top_n=1,
-                    )
+                    categories = [
+                        ('restricted', self.restricted_db, self.restricted_db_map,
+                         config.RESTRICTED_SIMILARITY_THRESHOLD),
+                        ('competitor', self.competitors_db, self.competitors_db_map,
+                         config.COMPETITORS_SIMILARITY_THRESHOLD),
+                        ('employer', self.employers_db, self.employers_db_map,
+                         config.EMPLOYERS_SIMILARITY_THRESHOLD),
+                    ]
 
-                    closest_match_data = self._get_best_match(
-                        best_resricted_match,
-                        best_competitors_match,
-                        best_employers_match
-                    )
-
-                    best_match = closest_match_data['name']
-                    similarity = closest_match_data['similarity']
-                    logo_category = closest_match_data['category']
-                    verdict = "ok"
-                    if logo_category in ["restricted", "competitor"]:
-                        if similarity >= config.AUTO_BLOCK_THRESHOLD:
-                            verdict = "blocked"
-                        elif similarity >= config.MANUAL_CHECK_THRESHOLD:
-                            verdict = "manual_moderation"
-
-                    results_data.append({
-                        "box": [round(c, 4) for c in coords_yolo],
-                        "detector_confidence": round(det_conf, 4),
-                        "best_match": best_match,
-                        "similarity_score": round(similarity, 4),
-                        "verdict": verdict
-                    })
+                    for category, db, db_map, threshold in categories:
+                        temp = self._process_match(embedding, db, db_map, threshold, category, coords_yolo, det_conf)
+                        if temp:
+                            results_data.append(temp)
+                            break
+                    else:
+                        results_data.append({
+                            "box": [round(c, 4) for c in coords_yolo],
+                            "detector_confidence": round(det_conf, 4),
+                            "best_match": "unknown",
+                            "similarity_score": 0.0,
+                            "verdict": "ok",
+                            "logo_category": "unknown"
+                        })
 
                 except Exception as e:
                     logger.warning("Ошибка при обработке кропа: %s", e)
@@ -199,6 +178,6 @@ class LogoPipeline:
 
         return {
             "status": "success",
-            "found_logos": len(results_data),
+            "found_logos": sum(len(r.boxes) for r in det_results),
             "details": results_data
         }

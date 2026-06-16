@@ -1,6 +1,12 @@
 import os
 import sys
+import logging
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 
+# Отключаем принудительную загрузку только весов в Torch (для совместимости)
 os.environ["TORCH_FORCE_WEIGHTS_ONLY_LOAD"] = "0"
 
 try:
@@ -16,27 +22,34 @@ try:
     torch.serialization.load = custom_load
 except Exception:
     pass
+
 import ultralytics
 import torch
+
+# Регистрируем безопасные глобальные типы для корректной десериализации моделей
 torch.serialization.add_safe_globals([torch.get_default_dtype])
 import ultralytics
 torch.serialization.add_safe_globals([ultralytics.nn.tasks.DetectionModel])
-import logging
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+
 from ml_pipeline import LogoPipeline
 
 logger = logging.getLogger("uvicorn.error")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Инициализация ML-пайплайна
     app.state.pipeline = LogoPipeline()
+    
+    # Корректная регистрация эндпоинта /metrics внутри жизненного цикла приложения
+    Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+    
     yield
     del app.state.pipeline
 
+# Создание экземпляра FastAPI приложения
 app = FastAPI(title="LogoSeeker API", lifespan=lifespan)
 
+# Настройка CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

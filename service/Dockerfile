@@ -21,6 +21,5 @@ RUN if [ "$USE_GPU" = "true" ] ; then \
     fi
 
 COPY . .
-RUN chmod -R +x node_modules/.bin
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

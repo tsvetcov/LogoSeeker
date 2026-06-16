@@ -2,7 +2,6 @@ import io
 import os
 import random
 from locust import HttpUser, task, between
-from PIL import Image
 
 # Путь к папке с изображениями внутри контейнера Locust
 IMAGES_DIR = "/mnt/locust/test_images"
@@ -25,12 +24,9 @@ class LogoSeekerFolderUser(HttpUser):
         if self.image_files:
             print(f"[+] Успешно найдено изображений для теста: {len(self.image_files)}")
         else:
-            print("[!] Папка с картинками пуста или не найдена. Включен режим генерации в памяти.")
-            # Дефолтный синий квадрат на случай, если папка пуста
-            img = Image.new('RGB', (200, 200), color='blue')
-            img_byte_arr = io.BytesIO()
-            img.save(img_byte_arr, format='PNG')
-            self.fallback_image = img_byte_arr.getvalue()
+            print("[!] Папка с картинками пуста или не найдена. Включен режим заглушки.")
+            # Просто байтовая строка-пустышка, чтобы скрипт не падал без PIL
+            self.fallback_image = b"fake_image_bytes_if_folder_empty"
 
     @task
     def send_random_logo(self):

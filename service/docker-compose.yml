@@ -21,6 +21,7 @@ services:
       - ./classifier/config.py:/app/classifier/config.py:ro
     environment:
       DATABASE_URL: "mysql+pymysql://user:password@db:3306/avito_moderation"
+      TORCH_FORCE_WEIGHTS_ONLY_LOAD: 0
     logging:
       driver: "json-file"
       options:

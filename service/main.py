@@ -1,3 +1,7 @@
+import torch
+torch.serialization.add_safe_globals([torch.get_default_dtype])
+import ultralytics
+torch.serialization.add_safe_globals([ultralytics.nn.tasks.DetectionModel])
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, UploadFile, HTTPException

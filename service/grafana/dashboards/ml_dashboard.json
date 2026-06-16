@@ -7,7 +7,7 @@
   "links": [],
   "liveNow": false,
   "panels": [
-    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }, "id": 1, "title": "⏱️ МГНОВЕННЫЕ ПОКАЗАТЕЛИ СКОРОСТИ И SLA (СПИДОМЕТРЫ)", "type": "row" },
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }, "id": 1, "title": "Текущие показатели RPS и latency (спидометры)", "type": "row" },
     {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 30 }, { "color": "red", "value": 60 }] }, "unit": "reqps" } },
@@ -71,13 +71,13 @@
       "gridPos": { "h": 7, "w": 24, "x": 0, "y": 6 }, "id": 11, "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] } },
       "targets": [
         { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P50 - Медианное время (Обычные запросы)", "refId": "A" },
-        { "expr": "histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P90 - Граница 90% запросов", "refId": "B" },
-        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P95 - Хвосты задержек (Тяжелые картинки)", "refId": "C" },
-        { "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P99 - Пиковые задержки (Максимальный тормоз)", "refId": "D" }
+        { "expr": "histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P90 - Перцентиль 90% запросов", "refId": "B" },
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P95 - Перцентиль 95% запросов", "refId": "C" },
+        { "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P99 - Перцентиль 99% запросов", "refId": "D" }
       ],
       "title": "Detailed SLA Latency Percentiles Trends (P50, P90, P95, P99)", "type": "timeseries"
     },
-    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 }, "id": 12, "title": "⚡ МОНИТОРИНГ ВИДЕОКАРТЫ (NVIDIA GPU)", "type": "row" },
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 }, "id": 12, "title": "Расход ресурсов видеокарты (GPU)", "type": "row" },
     {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "decbytes" } },
@@ -85,7 +85,7 @@
       "targets": [{ "expr": "container_gpu_memory_total{container_label_com_docker_compose_service=\"logo_service\"} - container_gpu_memory_free{container_label_com_docker_compose_service=\"logo_service\"} or vector(0)", "legendFormat": "Занято видеопамяти (VRAM)", "refId": "A" }],
       "title": "GPU VRAM Memory Allocation History", "type": "timeseries"
     },
-    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 }, "id": 14, "title": "🖥️ СИСТЕМНЫЕ РЕСУРСЫ КОНТЕЙНЕРОВ (CPU & RAM)", "type": "row" },
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 }, "id": 14, "title": "Использование системных ресурсов (CPU и RAM)", "type": "row" },
     {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "percent" } },
@@ -115,7 +115,7 @@
       "collapsed": false,
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
       "id": 17,
-      "title": "АППАРАТНАЯ ИНФРАСТРУКТУРА (ДИСК И СЕТЬ)",
+      "title": "Аппаратная инфраструктура",
       "type": "row"
     },
     {

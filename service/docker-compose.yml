@@ -70,6 +70,51 @@ services:
       - logo_network
     depends_on:
       - logo_service
+  locust:
+    image: locustio/locust:2.15.1
+    container_name: locust
+    ports:
+      - "8089:8089"
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --host http://logo_service:8000
+    networks:
+      - logo_network
+    restart: unless-stopped
+    depends_on:
+      - logo_service
+
+  prometheus:
+    image: prom/prometheus:v2.40.7
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alert.rules:/etc/prometheus/alert.rules # Проброс правил для алертов
+    networks:
+      - logo_network
+    restart: unless-stopped
+    depends_on:
+      - logo_service
+
+  grafana:
+    image: grafana/grafana:9.4.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin 
+    volumes:
+      - ./grafana/config.ini:/etc/grafana/grafana.ini
+      - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./grafana/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - logo_network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
 
 networks:
   logo_network:

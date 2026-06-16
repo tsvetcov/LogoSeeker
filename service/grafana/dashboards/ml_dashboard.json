@@ -1,0 +1,595 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "title": "Health",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 3000,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1500
+              },
+              {
+                "color": "red",
+                "value": 2500
+              }
+            ]
+          },
+          "unit": "req/sec"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 1,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "9.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(flask_http_request_duration_seconds_count{model_type=~\"$ModelType\", gender=~\"$Gender\"}[1m])) * 60",
+          "legendFormat": "Текущий RPM",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Current RPM",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "9.4.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(sum(rate(flask_http_request_duration_seconds_count{status=~\"5..\", model_type=~\"$ModelType\", gender=~\"$Gender\"}[1m])) or vector(0)) / sum(rate(flask_http_request_duration_seconds_count{model_type=~\"$ModelType\", gender=~\"$Gender\"}[1m])) * 100",
+          "legendFormat": "Доля ошибок",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Error Rate %",
+      "type": "gauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "id": 200,
+      "title": "Rates",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Запросы в секунду",
+            "axisPlacement": "auto"
+          },
+          "mappings": [],
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 7
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "sum(rate(flask_http_request_duration_seconds_count{model_type=~\"$ModelType\", gender=~\"$Gender\"}[1m]))",
+          "legendFormat": "Общий RPS",
+          "refId": "A"
+        }
+      ],
+      "title": "Total RPS",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Запросы в секунду",
+            "axisPlacement": "auto"
+          },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 7
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "sum(rate(flask_http_request_duration_seconds_count{model_type=~\"$ModelType\", gender=~\"$Gender\"}[1m])) by (model_type)",
+          "legendFormat": "Модель: {{model_type}}",
+          "refId": "A"
+        }
+      ],
+      "title": "RPS by Model Type",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Количество ошибок",
+            "axisPlacement": "auto"
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 7
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "sum(rate(flask_http_request_duration_seconds_count{status=~\"[45]..\", model_type=~\"$ModelType\", gender=~\"$Gender\"}[1m])) by (status)",
+          "legendFormat": "Статус {{status}}",
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP Errors Count",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 300,
+      "title": "Timings",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Время ответа ручки (мс)",
+            "axisPlacement": "auto"
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 0,
+        "y": 15
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "histogram_quantile(0.90, sum(rate(flask_http_request_duration_seconds_bucket{model_type=~\"$ModelType\", gender=~\"$Gender\"}[1m])) by (le)) * 1000",
+          "legendFormat": "Latency P90 (Ручка)",
+          "refId": "A"
+        }
+      ],
+      "title": "Handle Latency P90",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Время инференса (мс)",
+            "axisPlacement": "auto"
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 8,
+        "y": 15
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "histogram_quantile(0.90, sum(rate(model_inference_seconds_bucket{model_type=~\"$ModelType\", gender=~\"$Gender\"}[1m])) by (le)) * 1000",
+          "legendFormat": "Inference Time P90 (Берт)",
+          "refId": "A"
+        }
+      ],
+      "title": "Model Inference Time P90",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Среднее время (мс)",
+            "axisPlacement": "auto"
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 8,
+        "x": 16,
+        "y": 15
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "histogram_quantile(0.90, sum(rate(model_inference_seconds_bucket[1m])) by (le)) * 1000",
+          "legendFormat": "Среднее время обработки",
+          "refId": "A"
+        }
+      ],
+      "title": "Average Response Duration",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 400,
+      "title": "Probas",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Вероятность скоринга модели",
+            "axisPlacement": "auto"
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "Prometheus"
+          },
+          "expr": "sum(rate(model_inference_seconds_sum{model_type=~\"$ModelType\", gender=~\"$Gender\"}[1m])) by (gender, model_type)",
+          "legendFormat": "Распределение: {{gender}} ({{model_type}})",
+          "refId": "A"
+        }
+      ],
+      "title": "Distribution of Predictions (Probas)",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "value": [
+            "$__all"
+          ]
+        },
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "name": "ModelType",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          }
+        ],
+        "query": "lightgbm,bert",
+        "skipUrlSync": false,
+        "type": "custom"
+      },
+      {
+        "current": {
+          "selected": true,
+          "value": [
+            "$__all"
+          ]
+        },
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "name": "Gender",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          }
+        ],
+        "query": "male,female",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "ML Service Performance",
+  "uid": "ml_service_performance",
+  "version": 1
+}

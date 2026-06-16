@@ -77,6 +77,7 @@ services:
       - "8089:8089"
     volumes:
       - ./:/mnt/locust
+      - ./test_images:/mnt/locust/test_images:ro
     command: -f /mnt/locust/locustfile.py --host http://logo_service:8000
     networks:
       - logo_network

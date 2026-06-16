@@ -23,7 +23,7 @@ const handleUpload = async () => {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/moderate', {
+      const response = await fetch('http://161.104.50.187/:8000/api/v1/moderate', {
         method: 'POST',
         body: formData,
       });

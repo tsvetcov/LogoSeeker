@@ -1,5 +1,22 @@
 import os
+import sys
+
 os.environ["TORCH_FORCE_WEIGHTS_ONLY_LOAD"] = "0"
+
+try:
+    import torch
+    import torch.serialization
+    original_load = torch.load
+    
+    def custom_load(*args, **kwargs):
+        kwargs['weights_only'] = False  # Отключаем weights_only для всех вызовов
+        return original_load(*args, **kwargs)
+        
+    torch.load = custom_load
+    torch.serialization.load = custom_load
+except Exception:
+    pass
+import ultralytics
 import torch
 torch.serialization.add_safe_globals([torch.get_default_dtype])
 import ultralytics

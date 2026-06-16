@@ -7,39 +7,89 @@
   "links": [],
   "liveNow": false,
   "panels": [
-    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }, "id": 1, "title": "🎯 СКОРОСТЬ И ПЕРЦЕНТИЛИ ОБРАБОТКИ (FastAPI + YOLO)", "type": "row" },
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }, "id": 1, "title": "⏱️ МГНОВЕННЫЕ ПОКАЗАТЕЛИ СКОРОСТИ И SLA (СПИДОМЕТРЫ)", "type": "row" },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 30 }, { "color": "red", "value": 60 }] }, "unit": "reqps" } },
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 1 }, "id": 2, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+      "targets": [{ "expr": "sum(rate(http_requests_total{job=\"flask-backend\"}[1m]))", "refId": "A" }],
+      "title": "Total RPS", "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 0.2 }, { "color": "red", "value": 0.5 }] }, "unit": "s" } },
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 1 }, "id": 3, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+      "targets": [{ "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "refId": "A" }],
+      "title": "P50 Latency", "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 0.4 }, { "color": "red", "value": 0.8 }] }, "unit": "s" } },
+      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 1 }, "id": 4, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+      "targets": [{ "expr": "histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "refId": "A" }],
+      "title": "P90 Latency", "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 0.5 }, { "color": "red", "value": 1.0 }] }, "unit": "s" } },
+      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 1 }, "id": 5, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "refId": "A" }],
+      "title": "P95 Latency", "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 0.8 }, { "color": "red", "value": 1.5 }] }, "unit": "s" } },
+      "gridPos": { "h": 4, "w": 3, "x": 12, "y": 1 }, "id": 6, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+      "targets": [{ "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "refId": "A" }],
+      "title": "P99 Latency", "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 90 }] }, "unit": "percent" } },
+      "gridPos": { "h": 4, "w": 3, "x": 15, "y": 1 }, "id": 7, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+      "targets": [{ "expr": "container_gpu_utilization{container_label_com_docker_compose_service=\"logo_service\"} or vector(0)", "refId": "A" }],
+      "title": "GPU Load %", "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 90 }] }, "unit": "percent" } },
+      "gridPos": { "h": 4, "w": 3, "x": 18, "y": 1 }, "id": 8, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+      "targets": [{ "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=\"logo_service\"}[1m])) * 100", "refId": "A" }],
+      "title": "Backend CPU %", "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 5 }, { "color": "red", "value": 15 }] }, "unit": "percent" } },
+      "gridPos": { "h": 4, "w": 3, "x": 21, "y": 1 }, "id": 9, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+      "targets": [{ "expr": "(sum(rate(http_requests_total{status=~\"5..\"}[1m])) or vector(0)) / sum(rate(http_requests_total{}[1m])) * 100", "refId": "A" }],
+      "title": "Error Rate %", "type": "gauge"
+    },
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }, "id": 10, "title": "🎯 ВРЕМЕННЫЕ ГРАФИКИ И СТАТИСТИКА SLA (FastAPI + YOLO)", "type": "row" },
     {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" } },
-      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 1 }, "id": 2, "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] } },
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 6 }, "id": 11, "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] } },
       "targets": [
         { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P50 - Медианное время (Обычные запросы)", "refId": "A" },
         { "expr": "histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P90 - Граница 90% запросов", "refId": "B" },
         { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P95 - Хвосты задержек (Тяжелые картинки)", "refId": "C" },
         { "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P99 - Пиковые задержки (Максимальный тормоз)", "refId": "D" }
       ],
-      "title": "Detailed SLA Latency Percentiles (P50, P90, P95, P99)", "type": "timeseries"
+      "title": "Detailed SLA Latency Percentiles Trends (P50, P90, P95, P99)", "type": "timeseries"
     },
-    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 }, "id": 3, "title": "⚡ МОНИТОРИНГ ВИДЕОКАРТЫ (NVIDIA GPU)", "type": "row" },
-    {
-      "datasource": { "type": "prometheus", "uid": "Prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 90 }] }, "unit": "percent" } },
-      "gridPos": { "h": 5, "w": 12, "x": 0, "y": 9 }, "id": 4, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
-      "targets": [{ "expr": "container_gpu_utilization{container_label_com_docker_compose_service=\"logo_service\"} or vector(0)", "refId": "A" }],
-      "title": "GPU Core Utilization (YOLO Load)", "type": "gauge"
-    },
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 }, "id": 12, "title": "⚡ МОНИТОРИНГ ВИДЕОКАРТЫ (NVIDIA GPU)", "type": "row" },
     {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "decbytes" } },
-      "gridPos": { "h": 5, "w": 12, "x": 12, "y": 9 }, "id": 5, "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 14 }, "id": 13, "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
       "targets": [{ "expr": "container_gpu_memory_total{container_label_com_docker_compose_service=\"logo_service\"} - container_gpu_memory_free{container_label_com_docker_compose_service=\"logo_service\"} or vector(0)", "legendFormat": "Занято видеопамяти (VRAM)", "refId": "A" }],
-      "title": "GPU VRAM Memory Allocation", "type": "timeseries"
+      "title": "GPU VRAM Memory Allocation History", "type": "timeseries"
     },
-    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 }, "id": 6, "title": "🖥️ СИСТЕМНЫЕ РЕСУРСЫ КОНТЕЙНЕРОВ (CPU & RAM)", "type": "row" },
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 }, "id": 14, "title": "🖥️ СИСТЕМНЫЕ РЕСУРСЫ КОНТЕЙНЕРОВ (CPU & RAM)", "type": "row" },
     {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "percent" } },
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 15 }, "id": 7, "targets": [
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 21 }, "id": 15, "targets": [
         { "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=\"logo_service\"}[1m])) * 100", "legendFormat": "Бэкенд (FastAPI)", "refId": "A" },
         { "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=\"db\"}[1m])) * 100", "legendFormat": "База Данных (MariaDB)", "refId": "B" },
         { "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=\"locust\"}[1m])) * 100", "legendFormat": "Тестер (Locust)", "refId": "C" }
@@ -49,40 +99,83 @@
     {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "megabytes" } },
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 15 }, "id": 8, "targets": [
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 21 }, "id": 16, "targets": [
         { "expr": "container_memory_working_set_bytes{container_label_com_docker_compose_service=\"logo_service\"} / 1024 / 1024", "legendFormat": "Бэкенд (FastAPI)", "refId": "A" },
         { "expr": "container_memory_working_set_bytes{container_label_com_docker_compose_service=\"db\"} / 1024 / 1024", "legendFormat": "База Данных (MariaDB)", "refId": "B" },
-        { "expr": "container_memory_working_set_bytes{container_label_com_docker_compose_service=\"locust\"} / 1024 / 1024", "legendFormat": "Тестер (Locust)", "refId": "C" }
+        {
+          "expr": "container_memory_working_set_bytes{container_label_com_docker_compose_service=\"locust\"} / 1024 / 1024",
+          "legendFormat": "Тестер (Locust)",
+          "refId": "C"
+        }
       ],
-      "title": "Container RAM Memory Allocation", "type": "timeseries"
-    },
-    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 }, "id": 9, "title": "💾 АППАРАТНАЯ ИНФРАСТРУКТУРА (ДИСК И СЕТЬ)", "type": "row" },
-    {
-      "datasource": { "type": "prometheus", "uid": "Prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "Bps" } },
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 23 }, "id": 10, "targets": [
-        { "expr": "sum(rate(container_network_receive_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))", "legendFormat": "Входящая сеть (Rx)", "refId": "A" },
-        { "expr": "sum(rate(container_network_transmit_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))", "legendFormat": "Исходящая сеть (Tx)", "refId": "B" }
-      ],
-      "title": "Network IO Throughput", "type": "timeseries"
+      "title": "Container RAM Memory Allocation",
+      "type": "timeseries"
     },
     {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
+      "id": 17,
+      "title": "АППАРАТНАЯ ИНФРАСТРУКТУРА (ДИСК И СЕТЬ)",
+      "type": "row"
+    },
+    {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "Bps" } },
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 23 }, "id": 11, "targets": [
-        { "expr": "sum(rate(container_fs_reads_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))", "legendFormat": "Скорость чтения диска", "refId": "A" },
-        { "expr": "sum(rate(container_fs_writes_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))", "legendFormat": "Скорость записи диска", "refId": "B" }
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "Bps"
+        }
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 29 },
+      "id": 18,
+      "targets": [
+        {
+          "expr": "sum(rate(container_network_receive_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))",
+          "legendFormat": "Входящая сеть (Rx)",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(container_network_transmit_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))",
+          "legendFormat": "Исходящая сеть (Tx)",
+          "refId": "B"
+        }
       ],
-      "title": "Physical Disk IO Rate", "type": "timeseries"
+      "title": "Network IO Throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "Bps"
+        }
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 29 },
+      "id": 19,
+      "targets": [
+        {
+          "expr": "sum(rate(container_fs_reads_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))",
+          "legendFormat": "Скорость чтения диска",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(container_fs_writes_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))",
+          "legendFormat": "Скорость записи диска",
+          "refId": "B"
+        }
+      ],
+      "title": "Physical Disk IO Rate",
+      "type": "timeseries"
     }
   ],
   "refresh": "5s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": ["enterprise-ai"],
+  "tags": ["ultimate-enterprise"],
   "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "",
-  "title": "LogoSeeker Ultimate Enterprise AI Monitor",
-  "version": 3
+  "title": "LogoSeeker Ultimate Enterprise AI Monitor V4",
+  "version": 4
 }

@@ -6,7 +6,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
-# Отключаем принудительную загрузку только весов в Torch (для совместимости)
+# Отключаем принудительную загрузку только весов в Torch
 os.environ["TORCH_FORCE_WEIGHTS_ONLY_LOAD"] = "0"
 
 try:
@@ -15,7 +15,7 @@ try:
     original_load = torch.load
     
     def custom_load(*args, **kwargs):
-        kwargs['weights_only'] = False  # Отключаем weights_only для всех вызовов
+        kwargs['weights_only'] = False
         return original_load(*args, **kwargs)
         
     torch.load = custom_load
@@ -26,7 +26,7 @@ except Exception:
 import ultralytics
 import torch
 
-# Регистрируем безопасные глобальные типы для корректной десериализации моделей
+# Регистрируем безопасные глобальные типы для сериализации моделей
 torch.serialization.add_safe_globals([torch.get_default_dtype])
 import ultralytics
 torch.serialization.add_safe_globals([ultralytics.nn.tasks.DetectionModel])
@@ -37,19 +37,19 @@ logger = logging.getLogger("uvicorn.error")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Инициализация ML-пайплайна
+    # В lifespan оставляем ТОЛЬКО тяжелую инициализацию ML-моделей
     app.state.pipeline = LogoPipeline()
-    
-    # Корректная регистрация эндпоинта /metrics внутри жизненного цикла приложения
-    Instrumentator().instrument(app).expose(app, endpoint="/metrics")
-    
     yield
     del app.state.pipeline
 
-# Создание экземпляра FastAPI приложения
+# 1. Сначала создаем экземпляр приложения
 app = FastAPI(title="LogoSeeker API", lifespan=lifespan)
 
-# Настройка CORS
+# 2. Сразу после создания регистрируем метрики (в глобальной области!)
+# Это добавит /metrics в карту роутов ДО старта uvicorn
+Instrumentator().instrument(app).expose(app, endpoint="/metrics")
+
+# 3. Добавляем middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -68,7 +68,6 @@ async def moderate_image(file: UploadFile = File(...)):
         pipeline: LogoPipeline = app.state.pipeline
 
         ml_result = pipeline.process_image(image_bytes)
-
         overall_status = "ok"
 
         for detail in ml_result.get("details", []):
@@ -79,7 +78,6 @@ async def moderate_image(file: UploadFile = File(...)):
                 overall_status = "manual_moderation"
 
         ml_result["overall_status"] = overall_status
-
         return ml_result
 
     except Exception as e:

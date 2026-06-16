@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class LogoPipeline:
     def __init__(self):
-        self.device='cuda' if torch.cuda.is_available() else 'cpu'
+        self.device='cuda'
         logger.info(f"Считаем на: {self.device}")
 
         logger.info("Инициализация детектора YOLO (путь: %s)...", config.DETECTOR_PATH)

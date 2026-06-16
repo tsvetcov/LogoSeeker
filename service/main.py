@@ -1,3 +1,5 @@
+import os
+os.environ["TORCH_FORCE_WEIGHTS_ONLY_LOAD"] = "0"
 import torch
 torch.serialization.add_safe_globals([torch.get_default_dtype])
 import ultralytics

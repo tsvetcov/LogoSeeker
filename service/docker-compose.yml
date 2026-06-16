@@ -27,13 +27,13 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-#    deploy:
-#      resources:
-#        reservations:
-#          devices:
-#            - driver: nvidia
-#              count: 1
-#              capabilities: [gpu]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   # БАЗА ДАННЫХ
   db:
@@ -116,6 +116,19 @@ services:
     restart: unless-stopped
     depends_on:
       - prometheus
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    container_name: logo_seeker_cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+      - /usr/lib/nvidia:/usr/lib/nvidia:ro
+    networks:
+      - logo_network
+    restart: unless-stopped
 
 networks:
   logo_network:

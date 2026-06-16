@@ -1,19 +1,5 @@
 {
-  "annotations": {
-    "list": [
-      {
-        "builtIn": 1,
-        "datasource": {
-          "type": "datasource",
-          "uid": "grafana"
-        },
-        "enable": true,
-        "hide": true,
-        "name": "Annotations & Alerts",
-        "type": "dashboard"
-      }
-    ]
-  },
+  "annotations": { "list": [ { "builtIn": 1, "datasource": { "type": "datasource", "uid": "grafana" }, "enable": true, "hide": true, "name": "Annotations & Alerts", "type": "dashboard" } ] },
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -21,241 +7,82 @@
   "links": [],
   "liveNow": false,
   "panels": [
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }, "id": 1, "title": "🎯 СКОРОСТЬ И ПЕРЦЕНТИЛИ ОБРАБОТКИ (FastAPI + YOLO)", "type": "row" },
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
-      "id": 10,
-      "title": "Application Metrics (FastAPI)",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "Запросы в секунду",
-            "axisPlacement": "auto"
-          },
-          "unit": "reqps"
-        }
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 1
-      },
-      "id": 11,
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" } },
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 1 }, "id": 2, "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] } },
       "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
-          },
-          "expr": "sum(rate(http_requests_total{job=\"flask-backend\"}[1m]))",
-          "legendFormat": "Общий RPS приложения",
-          "refId": "A"
-        }
+        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P50 - Медианное время (Обычные запросы)", "refId": "A" },
+        { "expr": "histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P90 - Граница 90% запросов", "refId": "B" },
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P95 - Хвосты задержек (Тяжелые картинки)", "refId": "C" },
+        { "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P99 - Пиковые задержки (Максимальный тормоз)", "refId": "D" }
       ],
-      "title": "Total RPS",
-      "type": "timeseries"
+      "title": "Detailed SLA Latency Percentiles (P50, P90, P95, P99)", "type": "timeseries"
+    },
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 }, "id": 3, "title": "⚡ МОНИТОРИНГ ВИДЕОКАРТЫ (NVIDIA GPU)", "type": "row" },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 90 }] }, "unit": "percent" } },
+      "gridPos": { "h": 5, "w": 12, "x": 0, "y": 9 }, "id": 4, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+      "targets": [{ "expr": "container_gpu_utilization{container_label_com_docker_compose_service=\"logo_service\"} or vector(0)", "refId": "A" }],
+      "title": "GPU Core Utilization (YOLO Load)", "type": "gauge"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 5 },
-              { "color": "red", "value": 10 }
-            ]
-          },
-          "unit": "percent"
-        }
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 12,
-        "y": 1
-      },
-      "id": 12,
-      "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "values": false
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
-          },
-          "expr": "(sum(rate(http_requests_total{status=~\"5..\"}[1m])) or vector(0)) / sum(rate(http_requests_total{}[1m])) * 100",
-          "legendFormat": "Доля ошибок",
-          "refId": "A"
-        }
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "decbytes" } },
+      "gridPos": { "h": 5, "w": 12, "x": 12, "y": 9 }, "id": 5, "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{ "expr": "container_gpu_memory_total{container_label_com_docker_compose_service=\"logo_service\"} - container_gpu_memory_free{container_label_com_docker_compose_service=\"logo_service\"} or vector(0)", "legendFormat": "Занято видеопамяти (VRAM)", "refId": "A" }],
+      "title": "GPU VRAM Memory Allocation", "type": "timeseries"
+    },
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 }, "id": 6, "title": "🖥️ СИСТЕМНЫЕ РЕСУРСЫ КОНТЕЙНЕРОВ (CPU & RAM)", "type": "row" },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "percent" } },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 15 }, "id": 7, "targets": [
+        { "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=\"logo_service\"}[1m])) * 100", "legendFormat": "Бэкенд (FastAPI)", "refId": "A" },
+        { "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=\"db\"}[1m])) * 100", "legendFormat": "База Данных (MariaDB)", "refId": "B" },
+        { "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=\"locust\"}[1m])) * 100", "legendFormat": "Тестер (Locust)", "refId": "C" }
       ],
-      "title": "HTTP Error Rate %",
-      "type": "gauge"
+      "title": "Container CPU Usage Profile", "type": "timeseries"
     },
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 8
-      },
-      "id": 20,
-      "title": "Infrastructure Metrics (cAdvisor)",
-      "type": "row"
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "megabytes" } },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 15 }, "id": 8, "targets": [
+        { "expr": "container_memory_working_set_bytes{container_label_com_docker_compose_service=\"logo_service\"} / 1024 / 1024", "legendFormat": "Бэкенд (FastAPI)", "refId": "A" },
+        { "expr": "container_memory_working_set_bytes{container_label_com_docker_compose_service=\"db\"} / 1024 / 1024", "legendFormat": "База Данных (MariaDB)", "refId": "B" },
+        { "expr": "container_memory_working_set_bytes{container_label_com_docker_compose_service=\"locust\"} / 1024 / 1024", "legendFormat": "Тестер (Locust)", "refId": "C" }
+      ],
+      "title": "Container RAM Memory Allocation", "type": "timeseries"
+    },
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 }, "id": 9, "title": "💾 АППАРАТНАЯ ИНФРАСТРУКТУРА (ДИСК И СЕТЬ)", "type": "row" },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "Bps" } },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 23 }, "id": 10, "targets": [
+        { "expr": "sum(rate(container_network_receive_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))", "legendFormat": "Входящая сеть (Rx)", "refId": "A" },
+        { "expr": "sum(rate(container_network_transmit_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))", "legendFormat": "Исходящая сеть (Tx)", "refId": "B" }
+      ],
+      "title": "Network IO Throughput", "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "Использование CPU (%)",
-            "axisPlacement": "auto"
-          },
-          "unit": "percent"
-        }
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 9
-      },
-      "id": 21,
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
-          },
-          "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=\"logo_service\"}[1m])) * 100",
-          "legendFormat": "Бэкенд (YOLO)",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
-          },
-          "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=\"db\"}[1m])) * 100",
-          "legendFormat": "База данных (MariaDB)",
-          "refId": "B"
-        }
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "Bps" } },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 23 }, "id": 11, "targets": [
+        { "expr": "sum(rate(container_fs_reads_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))", "legendFormat": "Скорость чтения диска", "refId": "A" },
+        { "expr": "sum(rate(container_fs_writes_bytes_total{container_label_com_docker_compose_service=\"logo_service\"}[1m]))", "legendFormat": "Скорость записи диска", "refId": "B" }
       ],
-      "title": "CPU Usage by Container",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "Prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "Потребление памяти",
-            "axisPlacement": "auto"
-          },
-          "unit": "megabytes"
-        }
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 12,
-        "y": 9
-      },
-      "id": 22,
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
-          },
-          "expr": "container_memory_working_set_bytes{container_label_com_docker_compose_service=\"logo_service\"} / 1024 / 1024",
-          "legendFormat": "Бэкенд (YOLO)",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "Prometheus"
-          },
-          "expr": "container_memory_working_set_bytes{container_label_com_docker_compose_service=\"db\"} / 1024 / 1024",
-          "legendFormat": "База данных (MariaDB)",
-          "refId": "B"
-        }
-      ],
-      "title": "RAM Usage by Container",
-      "type": "timeseries"
+      "title": "Physical Disk IO Rate", "type": "timeseries"
     }
   ],
   "refresh": "5s",
   "schemaVersion": 38,
   "style": "dark",
-  "tags": [],
-  "time": {
-    "from": "now-15m",
-    "to": "now"
-  },
+  "tags": ["enterprise-ai"],
+  "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "",
-  "title": "LogoSeeker Production Monitor",
-  "version": 1
+  "title": "LogoSeeker Ultimate Enterprise AI Monitor",
+  "version": 3
 }

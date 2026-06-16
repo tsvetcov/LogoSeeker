@@ -10,18 +10,29 @@ from classifier import LogoClassifier
 from utils import crop_bounding_box, resize_image, top_n_closest_embs
 import config
 import json
+import torch
 
 logger = logging.getLogger(__name__)
 
 class LogoPipeline:
     def __init__(self):
+	self.device='cuda' if torch.cuda.is_available() else 'cpu'
+        logger.info(f"Считаем на: {self.device}")
+
         logger.info("Инициализация детектора YOLO (путь: %s)...", config.DETECTOR_PATH)
+        
         self.detector = YOLO(config.DETECTOR_PATH)
         self.conf_threshold = config.DETECTOR_THRESHOLD
 
+        if self.device == 'cuda':
+            self.detector.to('cuda')
+            logger.info("Детектор YOLO загружен на GPU")
+        else:
+            logger.info("Детектор YOLO загружен на CPU")
+
+
         logger.info("Инициализация классификатора (Embeddings)...")
         self.classifier = LogoClassifier()
-        # self.reference_db = {}
         self.restricted_db = np.load(config.RESTRICTED_EMB_BASE_PATH)
         self.competitors_db = np.load(config.COMPETITORS_EMB_BASE_PATH)
         self.employers_db = np.load(config.EMPLOYERS_EMB_BASE_PATH)
@@ -53,7 +64,7 @@ class LogoPipeline:
 
         results = []
         for pos, sim in zip(positions, similarities):
-            name = database_map.get(str(pos), database_map.get(pos, f"unknown_{pos}"))
+            name = database_map.get(str(pos), f"unknown_{pos}")
 
             results.append({
                 'name': name,

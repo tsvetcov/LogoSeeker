@@ -11,6 +11,7 @@ def resize_image(image):
     returns:
         :PIL IMAGE
     """
+
     temp_image = image.copy()
     target_size = config.CLASSIFIER_PIC_SIZE_MAX
     width, height = temp_image.size
@@ -40,7 +41,7 @@ def crop_bounding_box(image, bbox):
     returns:
         temp_image: PIL IMAGE
     """
-    # int() для безопасности, так как YOLO отдает float
+
     x1, y1, x2, y2 = [int(coord) for coord in bbox]
 
     x1 = max(0, min(x1, image.width - 1))

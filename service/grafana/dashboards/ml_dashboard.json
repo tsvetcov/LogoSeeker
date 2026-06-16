@@ -64,13 +64,13 @@
       "targets": [{ "expr": "(sum(rate(http_requests_total{status=~\"5..\"}[1m])) or vector(0)) / sum(rate(http_requests_total{}[1m])) * 100", "refId": "A" }],
       "title": "Error Rate %", "type": "gauge"
     },
-    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }, "id": 10, "title": "🎯 ВРЕМЕННЫЕ ГРАФИКИ И СТАТИСТИКА SLA (FastAPI + YOLO)", "type": "row" },
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }, "id": 10, "title": "Статистика времени ожидания отклика (FastAPI + YOLO)", "type": "row" },
     {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" } },
       "gridPos": { "h": 7, "w": 24, "x": 0, "y": 6 }, "id": 11, "options": { "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "max"] } },
       "targets": [
-        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P50 - Медианное время (Обычные запросы)", "refId": "A" },
+        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P50 - Медианное время", "refId": "A" },
         { "expr": "histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P90 - Перцентиль 90% запросов", "refId": "B" },
         { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P95 - Перцентиль 95% запросов", "refId": "C" },
         { "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P99 - Перцентиль 99% запросов", "refId": "D" }

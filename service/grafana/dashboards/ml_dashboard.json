@@ -43,19 +43,12 @@
       "targets": [{ "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "refId": "A" }],
       "title": "P99 Latency", "type": "gauge"
     },
-    {
-      "datasource": { "type": "prometheus", "uid": "Prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 90 }] }, "unit": "percent" } },
-      "gridPos": { "h": 4, "w": 3, "x": 15, "y": 1 }, "id": 7, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
-      "targets": [{ "expr": "container_gpu_utilization{container_label_com_docker_compose_service=\"logo_service\"} or vector(0)", "refId": "A" }],
-      "title": "GPU Load %", "type": "gauge"
-    },
-    {
+        {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 90 }] }, "unit": "percent" } },
       "gridPos": { "h": 4, "w": 3, "x": 18, "y": 1 }, "id": 8, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
       "targets": [{ "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=\"logo_service\"}[1m])) * 100", "refId": "A" }],
-      "title": "Backend CPU %", "type": "gauge"
+      "title": "Backend CPU Usage %", "type": "gauge"
     },
     {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
@@ -75,17 +68,9 @@
         { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P95 - Перцентиль 95% запросов", "refId": "C" },
         { "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P99 - Перцентиль 99% запросов", "refId": "D" }
       ],
-      "title": "Detailed SLA Latency Percentiles Trends (P50, P90, P95, P99)", "type": "timeseries"
+      "title": "Статистика latency (P50, P90, P95, P99)", "type": "timeseries"
     },
-    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 }, "id": 12, "title": "Расход ресурсов видеокарты (GPU)", "type": "row" },
-    {
-      "datasource": { "type": "prometheus", "uid": "Prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "decbytes" } },
-      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 14 }, "id": 13, "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
-      "targets": [{ "expr": "container_gpu_memory_total{container_label_com_docker_compose_service=\"logo_service\"} - container_gpu_memory_free{container_label_com_docker_compose_service=\"logo_service\"} or vector(0)", "legendFormat": "Занято видеопамяти (VRAM)", "refId": "A" }],
-      "title": "GPU VRAM Memory Allocation History", "type": "timeseries"
-    },
-    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 }, "id": 14, "title": "Использование системных ресурсов (CPU и RAM)", "type": "row" },
+       { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 }, "id": 14, "title": "Использование системных ресурсов (CPU и RAM)", "type": "row" },
     {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "percent" } },
@@ -176,6 +161,6 @@
   "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "",
-  "title": "LogoSeeker Ultimate Enterprise AI Monitor V4",
+  "title": "LogoSeeker Grafana",
   "version": 4
 }

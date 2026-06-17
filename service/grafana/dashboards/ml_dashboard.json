@@ -46,14 +46,14 @@
         {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 70 }, { "color": "red", "value": 90 }] }, "unit": "percent" } },
-      "gridPos": { "h": 4, "w": 3, "x": 18, "y": 1 }, "id": 8, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+      "gridPos": { "h": 4, "w": 3, "x": 18, "y": 1 }, "id": 7, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
       "targets": [{ "expr": "sum(rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=\"logo_service\"}[1m])) * 100", "refId": "A" }],
       "title": "Backend CPU Usage %", "type": "gauge"
     },
     {
       "datasource": { "type": "prometheus", "uid": "Prometheus" },
       "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 5 }, { "color": "red", "value": 15 }] }, "unit": "percent" } },
-      "gridPos": { "h": 4, "w": 3, "x": 21, "y": 1 }, "id": 9, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+      "gridPos": { "h": 4, "w": 3, "x": 21, "y": 1 }, "id": 8, "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
       "targets": [{ "expr": "(sum(rate(http_requests_total{status=~\"5..\"}[1m])) or vector(0)) / sum(rate(http_requests_total{}[1m])) * 100", "refId": "A" }],
       "title": "Error Rate %", "type": "gauge"
     },

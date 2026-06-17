@@ -73,9 +73,10 @@
         { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P50 - Медианное время", "refId": "A" },
         { "expr": "histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P90 - Перцентиль 90% запросов", "refId": "B" },
         { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P95 - Перцентиль 95% запросов", "refId": "C" },
-        { "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P99 - Перцентиль 99% запросов", "refId": "D" }
+        { "expr": "histogram_quantile(0.98, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P98 - Перцентиль 98% запросов", "refId": "D" }
+        { "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"flask-backend\"}[1m])) by (le))", "legendFormat": "P99 - Перцентиль 99% запросов", "refId": "E" }
       ],
-      "title": "Статистика latency (P50, P90, P95, P99)", "type": "timeseries"
+      "title": "Статистика latency (P50, P90, P95, P98, P99)", "type": "timeseries"
     },
        { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 20 }, "id": 14, "title": "Использование системных ресурсов (CPU и RAM)", "type": "row" },
     {
